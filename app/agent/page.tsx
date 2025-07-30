@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter, redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { AnimatedBackground } from "@/components/animated-background";
 import { Navbar } from "@/components/navbar";
@@ -22,9 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Bot,
   Zap,
@@ -35,6 +33,8 @@ import {
   Rocket,
   Workflow,
 } from "lucide-react";
+import api from "@/lib/axios";
+import { toast } from "react-toastify";
 
 const marketplaces = [
   { value: "amazon", label: "Amazon", icon: Package },
@@ -49,8 +49,6 @@ export default function BuildAgent() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const [selectedMarketplace, setSelectedMarketplace] = useState("");
-  const [agentName, setAgentName] = useState("");
-  const [agentDescription, setAgentDescription] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isDeploying, setIsDeploying] = useState(false);
 
@@ -71,7 +69,7 @@ export default function BuildAgent() {
   }
 
   const handleGenerateAgent = async () => {
-    if (!selectedMarketplace || !agentName) return;
+    if (!selectedMarketplace /* || !agentName */) return;
 
     setIsGenerating(true);
     // Simulate API call
@@ -83,7 +81,7 @@ export default function BuildAgent() {
   };
 
   const handleDeployWorkflow = async () => {
-    if (!selectedMarketplace || !agentName) return;
+    if (!selectedMarketplace /* || !agentName */) return;
 
     setIsDeploying(true);
     // Simulate API call
@@ -94,13 +92,65 @@ export default function BuildAgent() {
     alert("n8n Workflow generated and deployed successfully!");
   };
 
+  // Add handlers for workflow buttons
+  const handleGetVehicleByPhone = async () => {
+    try {
+      const res = await api.post("/deploy/n8n", {
+        workflowname: "getVehicleByPhone",
+      });
+
+      if (res.status === 200) {
+        toast.success("Workflow 'Get Vehicle by Phone' created successfully!");
+      } else {
+        toast.error("Failed to create workflow 'Get Vehicle by Phone'");
+      }
+    } catch (error) {
+      console.error("Error deploying workflow:", error);
+      toast.error("An error occurred while deploying the workflow.");
+    }
+  };
+
+  const handleSuggestApptSlots = async () => {
+    try {
+      const res = await api.post("/deploy/n8n", {
+        workflowname: "suggestApptSlots",
+      });
+
+      if (res.status === 200) {
+        toast.success("Workflow 'Suggest Appt Slots' created successfully!");
+      } else {
+        toast.error("Failed to create workflow 'Suggest Appt Slots'");
+      }
+    } catch (error) {
+      console.error("Error deploying workflow:", error);
+      toast.error("An error occurred while deploying the workflow.");
+    }
+  };
+
+  const handleBookAppt = async () => {
+    try {
+      const res = await api.post("/deploy/n8n", { workflowname: "bookAppt" });
+
+      if (res.status === 200) {
+        toast.success("Workflow 'Book Appt' created successfully!");
+      } else {
+        toast.error("Failed to create workflow 'Book Appt'");
+      }
+    } catch (error) {
+      console.error("Error deploying workflow:", error);
+      toast.error("An error occurred while deploying the workflow.");
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
 
       <AnimatedBackground variant="gradient">
         <div className="flex-1 py-12 px-4">
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-7xl mx-auto">
+            {" "}
+            {/* Changed from max-w-4xl to max-w-7xl for wider layout */}
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -118,7 +168,6 @@ export default function BuildAgent() {
                 The Victory Auto Service - AI Voice Technology
               </p>
             </motion.div>
-
             <motion.div
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
@@ -127,66 +176,49 @@ export default function BuildAgent() {
             >
               {/* Configuration Card */}
               <Card className="glass-morphism">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Settings className="h-5 w-5 text-purple-400" />
-                    Agent Configuration
-                  </CardTitle>
-                  <CardDescription>
-                    Configure your AI voice agent settings and marketplace
-                    integration
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-2">
-                      <Label htmlFor="agentName">Agent Name</Label>
-                      <Input
-                        id="agentName"
-                        placeholder="Enter agent name"
-                        value={agentName}
-                        onChange={(e) => setAgentName(e.target.value)}
-                        className="glass-morphism"
-                      />
+                {/* CardHeader and CardContent in one row, responsive */}
+                <div className="flex flex-col md:flex-row items-center md:items-start gap-4 p-6">
+                  {/* Header section */}
+                  <div className="flex flex-col items-center md:items-start md:w-1/3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Settings className="h-5 w-5 text-purple-400" />
+                      <span className="text-xl font-semibold">
+                        Marketplace Select
+                      </span>
                     </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="marketplace">Marketplace Platform</Label>
-                      <Select
-                        value={selectedMarketplace}
-                        onValueChange={setSelectedMarketplace}
-                      >
-                        <SelectTrigger className="glass-morphism">
-                          <SelectValue placeholder="Select marketplace" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {marketplaces.map((marketplace) => (
-                            <SelectItem
-                              key={marketplace.value}
-                              value={marketplace.value}
-                            >
-                              <div className="flex items-center gap-2">
-                                <marketplace.icon className="h-4 w-4" />
-                                {marketplace.label}
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
+                    <span className="text-muted-foreground text-sm text-center md:text-left">
+                      Select your marketplace to integrate with your AI agent.
+                    </span>
                   </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="description">Agent Description</Label>
-                    <Textarea
-                      id="description"
-                      placeholder="Describe what your voice agent should do..."
-                      value={agentDescription}
-                      onChange={(e) => setAgentDescription(e.target.value)}
-                      className="glass-morphism min-h-[100px]"
-                    />
+                  {/* Content section */}
+                  <div className="flex flex-col items-center justify-center gap-4 md:w-2/3">
+                    <Label
+                      htmlFor="marketplace"
+                      className="text-lg font-medium mb-2"
+                    ></Label>
+                    <Select
+                      value={selectedMarketplace}
+                      onValueChange={setSelectedMarketplace}
+                    >
+                      <SelectTrigger className="glass-morphism w-64">
+                        <SelectValue placeholder="Select marketplace" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {marketplaces.map((marketplace) => (
+                          <SelectItem
+                            key={marketplace.value}
+                            value={marketplace.value}
+                          >
+                            <div className="flex items-center gap-2">
+                              <marketplace.icon className="h-4 w-4" />
+                              {marketplace.label}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                </CardContent>
+                </div>
               </Card>
 
               {/* Selected Platform Preview */}
@@ -244,7 +276,7 @@ export default function BuildAgent() {
                     <Button
                       onClick={handleGenerateAgent}
                       disabled={
-                        !selectedMarketplace || !agentName || isGenerating
+                        !selectedMarketplace /* || !agentName */ || isGenerating
                       }
                       className="w-full bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white"
                     >
@@ -275,10 +307,34 @@ export default function BuildAgent() {
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
+                    {/* Responsive row for workflow buttons */}
+                    <div className="flex flex-col sm:flex-row gap-3 mb-6">
+                      <Button
+                        variant="secondary"
+                        className="flex-1 flex items-center justify-center gap-2 transition-colors duration-200 hover:bg-blue-100 hover:text-blue-700"
+                        onClick={handleGetVehicleByPhone}
+                      >
+                        Get Vehicle by Phone
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        className="flex-1 flex items-center justify-center gap-2 transition-colors duration-200 hover:bg-blue-100 hover:text-blue-700"
+                        onClick={handleSuggestApptSlots}
+                      >
+                        Suggest Appt Slots
+                      </Button>
+                      <Button
+                        variant="secondary"
+                        className="flex-1 flex items-center justify-center gap-2 transition-colors duration-200 hover:bg-blue-100 hover:text-blue-700"
+                        onClick={handleBookAppt}
+                      >
+                        Book Appt
+                      </Button>
+                    </div>
                     <Button
                       onClick={handleDeployWorkflow}
                       disabled={
-                        !selectedMarketplace || !agentName || isDeploying
+                        !selectedMarketplace /* || !agentName */ || isDeploying
                       }
                       variant="outline"
                       className="w-full border-blue-500/50 text-blue-400 hover:bg-blue-500/10"

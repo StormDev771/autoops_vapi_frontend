@@ -507,6 +507,3 @@ export default function BuildAgent() {
     </AgentIdContext.Provider>
   );
 }
-
-// Optional: Custom hook to use agentId context elsewhere
-export const useAgentId = () => useContext(AgentIdContext);

@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const api = axios.create({
-  baseURL: "http://localhost:5000/api", // Set your backend base URL here
+  baseURL: "https://autoops-vapi-backend.onrender.com/api", // Set your backend base URL here
   withCredentials: false, // Set to true if you use cookies/session
   headers: {
     "Content-Type": "application/json",
